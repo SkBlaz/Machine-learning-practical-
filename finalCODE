@@ -1,0 +1,15 @@
+code of my project
+
+library(caret); library(kernlab); 
+inTrain <- createDataPartition(y=testset1$V6,
+                               p=0.75, list=FALSE)
+training <- testset1[inTrain,]
+testing <- testset1[-inTrain,]
+dim(training)
+#modelfit
+set.seed(7)
+print("Fitting the model..")
+modelFit <- train(V6 ~.,data=training, method="glm")
+modelFit
+predictions <- predict(modelFit,newdata=testing)
+

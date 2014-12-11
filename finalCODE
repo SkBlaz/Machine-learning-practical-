@@ -1,15 +1,60 @@
-code of my project
+---
+title: "FInal project"
+author: "Blaz Skrlj"
+date: "Thursday, December 11, 2014"
+output: html_document
+---
 
-library(caret); library(kernlab); 
-inTrain <- createDataPartition(y=testset1$V6,
-                               p=0.75, list=FALSE)
-training <- testset1[inTrain,]
-testing <- testset1[-inTrain,]
-dim(training)
-#modelfit
-set.seed(7)
-print("Fitting the model..")
-modelFit <- train(V6 ~.,data=training, method="glm")
-modelFit
-predictions <- predict(modelFit,newdata=testing)
+```{r, echo=TRUE}
+library(knitr)
+library(ElemStatLearn)
+library(caret)
+library(rpart)
+library(randomForest)
+set.seed(444)
+opts_chunk$set(echo = TRUE, results = 'hold')
+#read the file via Rstudio
+traindata <- read.csv("C:/Users/bibaleze69/Downloads/pml-training.csv", na.strings=c("", "NA", "NULL"))
+traindata <- traindata[,-1]
+inTrain = createDataPartition(traindata$classe, p=0.60, list=FALSE)
+training = traindata[inTrain,]
+validating = traindata[-inTrain,]
+
+sum((colSums(!is.na(training[,-ncol(training)])) < 0.60*nrow(training)))
+
+CleanD <- c((colSums(!is.na(training[,-ncol(training)])) >= 0.70*nrow(training)))
+training   <-  training[,CleanD]
+validating <- validating[,CleanD]
+
+model <- randomForest(classe~.,data=training)
+print(model)
+confusionMatrix(predict(model,newdata=validating[,-ncol(validating)]),validating$classe)
+
+#read the file via Rstudio
+testdata <- read.csv("C:/Users/bibaleze69/Downloads/pml-testing.csv", na.strings=c("", "NA", "NULL"))
+
+testdata <- testdata[,-1] # Remove the first column that represents a ID Row
+testdata <- testdata[ , CleanD] # Keep the same columns of testing dataset
+testdata <- testdata[,-ncol(testdata)] # Remove the problem ID
+
+# Coerce testing dataset to same class and strucuture of training dataset 
+testing <- rbind(training[100, -59] , testdata) 
+# Apply the ID Row to row.names and 100 for dummy row from testing dataset 
+row.names(testing) <- c(100, 1:20)
+predictions <- predict(model,newdata=testing[-1,])
+print(predictions)
+#submission
+answers = c("B","A","B","A","A","E","D","B","A","A","B","C","B","A" ,"E","E","A","B","B","B")
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(answers)
+
+
+```
+
 
